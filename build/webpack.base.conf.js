@@ -1,14 +1,25 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const PATHS = {
+  src: path.join(__dirname, '../src'),
+  dist: path.join(__dirname, '../dist'),
+  assets: 'assets/'
+}
 
 module.exports = {
+  externals: {
+    paths: PATHS
+  },
   entry: {
-    app: './src/index.js'
+    app: PATHS.src
   },
   output: {
-    filename: '[name].js',
-    path: path.resolve(__dirname, './dist'),
-    publicPath: '/dist'
+    filename: `${PATHS.assets}js/[name].js`,
+    path: PATHS.dist,
+    publicPath: '/'
   },
   module: {
       rules: [
@@ -16,6 +27,13 @@ module.exports = {
           test: /\.js$/,
           loader: 'babel-loader',
           exclude: '/node_modules/'
+        },
+        {
+          test: /\.(png|jpg|gif|svg)$/,
+          loader: 'file-loader',
+          options: {
+            name: '[name].[ext]'
+          }
         },
         {
           test: /\.css$/,
@@ -28,7 +46,7 @@ module.exports = {
             },
             {
               loader: 'postcss-loader',
-              options: { sourceMap: true, config: { path: 'src/js/postcss.config.js' }}
+              options: { sourceMap: true, config: { path: `${PATHS.src}/js/postcss.config.js` }}
             },
           ]
         },
@@ -43,7 +61,7 @@ module.exports = {
             },
             {
               loader: 'postcss-loader',
-              options: { sourceMap: true, config: { path: 'src/js/postcss.config.js' }}
+              options: { sourceMap: true, config: { path: `${PATHS.src}/js/postcss.config.js` }}
             },
             {
               loader: 'sass-loader',
@@ -53,19 +71,21 @@ module.exports = {
         }
       ]
   },
-  devServer: {
-    overlay: true
-  },
   plugins: [
     new MiniCssExtractPlugin({
       // Options similar to the same options in webpackOptions.output
       // all options are optional
-      filename: '[name].css',
-      // chunkFilename: '[id].css',
+      filename: `${PATHS.assets}css/[name].css`,
       ignoreOrder: false, // Enable to remove warnings about conflicting order
     }),
+    new HtmlWebpackPlugin({
+      hash: false,
+      template: `${PATHS.src}/index.html`,
+      filename: './index.html'
+    }),
+    new CopyWebpackPlugin([
+      { from: `${PATHS.src}/img`, to: `${PATHS.assets}img`},
+      { from: `${PATHS.src}/static`, to: ``}
+    ])
   ]
 };
-
-// path: path.resolve(__dirname, 'dist'),
-// filename: '[name].js'
